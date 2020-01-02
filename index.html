@@ -104,7 +104,7 @@
     document.getElementById("btn").addEventListener("click", () => {
         const name = document.getElementById('name').value;
         const obj = document.getElementById('obj').value;
-        const thriftObject = outerConvert(name, obj);
+        const thriftObject = outerConvert(name, JSON.parse(obj));
         document.getElementById('output').innerText = thriftObject;
     });
 </script>
