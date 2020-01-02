@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jsonTOthrift</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+</head>
+
+<body>
+    <section class="section">
+        <div class="columns is-centered">
+            <h1 class="title">
+                jsonTOthrift
+            </h1>
+
+            <h2>Json:</h2>
+            <input id="name" class="input is-small" type="text" placeholder="Object name">
+            <textarea id="obj" class="textarea is-small" placeholder="Json object" rows="15"></textarea>
+
+            <br>
+            <section>
+                <button id="btn" class="button is-link is-light">Convert</button>
+            </section>
+            <br>
+
+            <h2 class="title">
+                Thrift object
+            </h2>
+            <section id="output" class="subtitle is-size-7">
+            </section>
+        </div>
+    </section>
+</body>
+
+<script>
+    const outerConvert = (name, obj) => {
+        const array = new Map();
+        convert(name, obj, array);
+        return createStructs(array);
+    }
+
+    const convert = (name, obj, array) => {
+        let t = typeof (obj);
+        switch (t) {
+            case "bigint":
+                return typeV(name, 'i64');
+            case "boolean":
+                return typeV(name, 'bool');
+            case "number":
+                if (Number.isInteger(obj)) {
+                    return typeV(name, 'i32');
+                } else {
+                    return typeV(name, 'double');
+                }
+            case "string":
+                return typeV(name, 'string');
+            case "object":
+                if (Array.isArray(obj)) {
+                    return typeV(name, `list<${convert(name + "Item", obj[0], array).t}>`)
+                }
+                let properties = [];
+                for (const [key, value] of Object.entries(obj)) {
+                    properties.push(convert(key, value, array))
+                }
+
+                let objV1 = objV(name, properties);
+                array.set(objV1.name, objV1);
+                return objV1;
+        }
+    };
+
+    const typeV = (k, t) => {
+        return ({
+            name: k,
+            t: t
+        })
+    }
+
+    const objV = (k, vals) => {
+        return ({
+            name: capitalizeFirstLetter(k),
+            vals: vals,
+            t: 'MV' + capitalizeFirstLetter(k)
+        });
+    };
+
+    const capitalizeFirstLetter = (string) => {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    };
+
+    const createStruct = (struct) => {
+        return `struct MV${struct.name} {\n${struct.vals.map((v, i) => `\t${i + 1}:${v.t} ${v.name}\n`).join('')}}\n`
+    }
+
+    const createStructs = (map) => {
+        return Array.from(map.values()).map(createStruct).join('');
+    }
+
+    document.getElementById("btn").addEventListener("click", () => {
+        const name = document.getElementById('name').value;
+        const obj = document.getElementById('obj').value;
+        const thriftObject = outerConvert(name, obj);
+        document.getElementById('output').innerText = thriftObject; 
+    });
+
+
+</script>
+
+</html>
