@@ -10,8 +10,10 @@
 </head>
 
 <body>
+
     <section class="section">
-        <div class="columns is-centered">
+
+        <div class="container">
             <h1 class="title">
                 jsonTOthrift
             </h1>
@@ -103,10 +105,8 @@
         const name = document.getElementById('name').value;
         const obj = document.getElementById('obj').value;
         const thriftObject = outerConvert(name, obj);
-        document.getElementById('output').innerText = thriftObject; 
+        document.getElementById('output').innerText = thriftObject;
     });
-
-
 </script>
 
 </html>
